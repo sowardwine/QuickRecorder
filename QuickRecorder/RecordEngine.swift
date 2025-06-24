@@ -453,13 +453,17 @@ extension AppDelegate {
             } else {
                 let input = SCContext.audioEngine.inputNode
                 let inputFormat = input.inputFormat(forBus: 0)
-                input.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { buffer, time in
-                    if SCContext.isPaused || SCContext.startTime == nil { return }
-                    if SCContext.micInput.isReadyForMoreMediaData {
-                        SCContext.micInput.append(buffer.asSampleBuffer!)
+                do {
+                    input.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { buffer, time in
+                        if SCContext.isPaused || SCContext.startTime == nil { return }
+                        if SCContext.micInput.isReadyForMoreMediaData {
+                            SCContext.micInput.append(buffer.asSampleBuffer!)
+                        }
                     }
+                    try SCContext.audioEngine.start()
+                } catch {
+                    print("Error starting audio engine: \(error.localizedDescription)")
                 }
-                try! SCContext.audioEngine.start()
             }
         } else {
             AudioRecorder.shared.setupAudioCapture()
